@@ -1,0 +1,278 @@
+/* ---------------- Root Theme ---------------- */
+:root {
+  --color-bg-dark: #0d1b2a;
+  --color-bg-mid: #1b263b;
+  --color-bg-accent: #2a9d8f;
+  --color-glass-bg: rgba(255, 255, 255, 0.08);
+  --color-glass-border: rgba(255, 255, 255, 0.2);
+  --color-shadow: rgba(0, 0, 0, 0.35);
+  --color-shadow-light: rgba(0, 0, 0, 0.25);
+  --color-text-light: #e0fbfc;
+  --color-text-muted: #a9bcd0;
+  --color-accent: #2a9d8f;
+  --color-accent-light: #38b2ac;
+}
+
+/* ---------------- Skills Section ---------------- */
+.skills-section {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--color-bg-mid) 0%, var(--color-bg-accent) 100%);
+  position: relative;
+  padding: 2.55rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--color-text-light);
+  font-family: "Poppins", sans-serif;
+}
+
+.skills-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/hexellence.png");
+  opacity: 0.08;
+  z-index: 0;
+}
+
+/* ---------------- Skills Container (Reduced by 15%) ---------------- */
+.skills-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1020px;
+  background: var(--color-glass-bg);
+  border: 1.5px solid var(--color-glass-border);
+  border-radius: 21.25px;
+  box-shadow: 0 8px 25px var(--color-shadow);
+  backdrop-filter: blur(15px);
+  padding: clamp(1.275rem, 2.55vw, 2.125rem);
+  box-sizing: border-box;
+}
+
+/* ---------------- Headings (Reduced by 15%) ---------------- */
+.skills-title {
+  text-align: center;
+  font-size: clamp(1.53rem, 4.25vw, 1.87rem);
+  color: var(--color-text-light);
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0.255rem;
+}
+
+.skills-sub {
+  text-align: center;
+  font-size: clamp(0.765rem, 1.7vw, 0.85rem);
+  color: var(--color-text-muted);
+  margin-bottom: 1.275rem;
+}
+
+/* ---------------- Carousel (Reduced by 15%) ---------------- */
+.carousel-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid var(--color-glass-border);
+  border-radius: 17rem;
+  box-shadow: 0 4px 15px var(--color-shadow-light);
+  padding: 1.275rem;
+  margin-bottom: 1.275rem;
+  text-align: center;
+}
+
+.carousel-title {
+  font-size: clamp(0.935rem, 2.125vw, 1.105rem);
+  color: var(--color-text-light);
+  font-weight: 600;
+  margin-bottom: 0.34rem;
+}
+
+.carousel-desc {
+  font-size: clamp(0.68rem, 1.53vw, 0.8075rem);
+  color: var(--color-text-muted);
+  margin-bottom: 0.85rem;
+}
+
+.carousel-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.425rem, 1.275vw, 0.85rem);
+}
+
+.carousel-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: clamp(29.75px, 5.95vw, 38.25px);
+  height: clamp(29.75px, 5.95vw, 38.25px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 6px var(--color-shadow-light);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.carousel-btn:hover {
+  background: var(--color-accent);
+  transform: scale(1.1);
+}
+
+/* ---------------- Skill Icons (Reduced by 15%) ---------------- */
+.skill-icons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.51rem, 1.275vw, 0.85rem);
+  flex: 1;
+  max-width: 595px;
+}
+
+.skill-item {
+  text-align: center;
+  width: clamp(46.75px, 10.2vw, 68px);
+}
+
+.skill-item img {
+  width: clamp(29.75px, 6.8vw, 42.5px);
+  height: clamp(29.75px, 6.8vw, 42.5px);
+  transition: transform 0.3s ease;
+  display: block;
+  margin: 0 auto;
+  filter: brightness(0.9);
+}
+
+.skill-item img:hover {
+  transform: scale(1.1);
+  filter: brightness(1.1);
+}
+
+.skill-item p {
+  margin-top: 0.255rem;
+  font-size: clamp(0.595rem, 1.53vw, 0.7225rem);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* ---------------- Workspace (Reduced by 15%) ---------------- */
+.workspace h3 {
+  font-size: clamp(0.935rem, 2.125vw, 1.105rem);
+  color: var(--color-text-light);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.85rem;
+}
+
+.workspace-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  justify-content: center;
+}
+
+.chart-box {
+  flex: 1 1 clamp(250px, 45%, 425px);
+  min-width: 250px;
+  height: clamp(220px, 35vh, 255px);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12.75px;
+  border: 1.5px solid var(--color-glass-border);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px var(--color-shadow-light);
+  padding: clamp(0.68rem, 1.275vw, 0.85rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.chart-box h4 {
+  color: var(--color-text-light);
+  text-align: center;
+  font-size: clamp(0.7225rem, 1.7vw, 0.85rem);
+  margin-bottom: 0.255rem;
+}
+
+/* ---------------- Responsive Fixes (Unchanged for Mobile) ---------------- */
+@media (max-width: 600px) {
+  .skills-section {
+    padding: 1rem 0.8rem;
+    height: auto;
+    justify-content: flex-start;
+  }
+
+  .skills-container {
+    padding: 1rem;
+  }
+
+  .skills-title {
+    font-size: 1.4rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .skills-sub {
+    font-size: 0.9rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .carousel-container {
+    margin-bottom: 0.5rem;
+    padding: 0.8rem;
+  }
+
+  .workspace h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .workspace {
+    gap: 0.5rem;
+  }
+
+  .chart-box {
+    min-height: 220px;
+    height: 220px !important;
+  }
+
+  .chart-box h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .skill-icons {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  .skill-item img {
+    width: 25px;
+    height: 25px;
+  }
+
+  .skill-item p {
+    display: none;
+  }
+
+  .carousel-title {
+    font-size: 1rem;
+    margin-top: 0;
+  }
+
+  .carousel-desc {
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .workspace-grid p {
+    font-size: 0.85rem;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}

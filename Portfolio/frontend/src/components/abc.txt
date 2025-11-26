@@ -1,0 +1,700 @@
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight, MapPin, Palette, X } from "lucide-react";
+
+// Image Carousel Component
+const ImageCarousel = ({ images }) => {
+  const [index, setIndex] = useState(0);
+
+  const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
+  const next = () => setIndex((i) => (i + 1) % images.length);
+
+  return (
+    <div style={styles.carousel}>
+      <button 
+        style={{...styles.carouselBtn, left: "10px"}} 
+        onClick={prev}
+        onMouseEnter={(e) => e.target.style.background = "rgba(42, 157, 143, 0.8)"}
+        onMouseLeave={(e) => e.target.style.background = "rgba(0,0,0,0.5)"}
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <img src={images[index]} alt="gallery" style={styles.carouselImg} />
+      <button 
+        style={{...styles.carouselBtn, right: "10px"}} 
+        onClick={next}
+        onMouseEnter={(e) => e.target.style.background = "rgba(42, 157, 143, 0.8)"}
+        onMouseLeave={(e) => e.target.style.background = "rgba(0,0,0,0.5)"}
+      >
+        <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+};
+
+// Travel Detail Modal
+const TravelModal = ({ spot, onClose }) => {
+  const [imgIndex, setImgIndex] = useState(0);
+
+  const prevImg = () => setImgIndex((i) => (i - 1 + spot.images.length) % spot.images.length);
+  const nextImg = () => setImgIndex((i) => (i + 1) % spot.images.length);
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button 
+          style={styles.closeBtn} 
+          onClick={onClose}
+          onMouseEnter={(e) => {
+            e.target.style.background = "rgba(255, 255, 255, 0.1)";
+            e.target.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = "none";
+            e.target.style.transform = "scale(1)";
+          }}
+        >
+          <X size={24} />
+        </button>
+
+        <div style={styles.modalBody}>
+          <div style={styles.modalLeft}>
+            <h2 style={{fontSize: "2rem", marginBottom: "12px", color: "#38b2ac", fontWeight: "700"}}>{spot.title}</h2>
+            <p style={styles.modalTag}>{spot.type} • {spot.people}</p>
+            
+            <div style={styles.modalContentScroll}>
+              {spot.details.map((para, i) => (
+                <p key={i} style={{marginBottom: "18px", lineHeight: "1.7", color: "#b8c9d9", fontSize: "1rem"}}>{para}</p>
+              ))}
+              
+              {spot.itinerary && (
+                <div style={styles.itinerarySection}>
+                  <h3 style={{color: "#38b2ac", marginBottom: "12px", fontSize: "1.1rem", fontWeight: "600"}}>📍 Itinerary</h3>
+                  <a 
+                    href={spot.itinerary} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={styles.itineraryLink}
+                    onMouseEnter={(e) => e.target.style.color = "#2a9d8f"}
+                    onMouseLeave={(e) => e.target.style.color = "#38b2ac"}
+                  >
+                    View Full Itinerary →
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div style={styles.modalRight}>
+            <div style={styles.modalCarousel}>
+              <button 
+                style={{...styles.carouselBtn, left: "10px"}} 
+                onClick={prevImg}
+                onMouseEnter={(e) => e.target.style.background = "rgba(42, 157, 143, 0.8)"}
+                onMouseLeave={(e) => e.target.style.background = "rgba(0,0,0,0.5)"}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <img src={spot.images[imgIndex]} alt="travel moment" style={styles.modalCarouselImg} />
+              <button 
+                style={{...styles.carouselBtn, right: "10px"}} 
+                onClick={nextImg}
+                onMouseEnter={(e) => e.target.style.background = "rgba(42, 157, 143, 0.8)"}
+                onMouseLeave={(e) => e.target.style.background = "rgba(0,0,0,0.5)"}
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+            <div style={styles.carouselDots}>
+              {spot.images.map((_, i) => (
+                <div
+                  key={i}
+                  style={{...styles.dot, ...(i === imgIndex ? styles.dotActive : {})}}
+                  onClick={() => setImgIndex(i)}
+                  onMouseEnter={(e) => {
+                    if (i !== imgIndex) e.target.style.background = "rgba(56, 178, 172, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (i !== imgIndex) e.target.style.background = "rgba(255, 255, 255, 0.3)";
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Travel Data
+const travelSpots = [
+  {
+    title: "Sikkim – Himalayas Adventure",
+    type: "Organized Trip",
+    people: "Led a group of 15",
+    experience: "Travelled to extreme altitudes, managed the group, coordinated stays.",
+    itinerary: null,
+    images: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    ],
+    details: [
+      "Our journey to Sikkim was an unforgettable experience at extreme altitudes. Leading a group of 15 people through the majestic Himalayas required careful planning and coordination.",
+      "We encountered breathtaking snow peaks, pristine mountain lakes, and lush valleys. The weather was challenging, but the team spirit kept everyone motivated throughout the trek.",
+      "Managing accommodation in remote areas and ensuring everyone's safety was a priority. We trekked through multiple passes and witnessed the sunrise from one of the highest points.",
+      "The locals shared their rich culture and traditions with us. We experienced authentic Sikkimese cuisine and learned about the region's unique biodiversity.",
+      "This trip taught me the importance of leadership, quick decision-making, and how to inspire a group in challenging terrains. The memories of snow-capped peaks will remain forever."
+    ]
+  },
+  {
+    title: "Meghalaya – Abode of Clouds",
+    type: "Organized Trip",
+    people: "Led a group of 20",
+    experience: "An adventurous trip through mountains, waterfalls and caves.",
+    itinerary: "https://docs.google.com/document/d/1example/view",
+    images: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    ],
+    details: [
+      "Meghalaya, the wettest place on Earth, offered us stunning landscapes and thrilling adventures. With a group of 20 explorers, we ventured through mist-covered mountains and pristine forests.",
+      "We explored the famous Mawsmai Caves with their unique stalagmites and stalactites formations. The underground rivers and chambers were a marvel of natural engineering.",
+      "Cherrapunji and Sohra offered us breathtaking waterfall views. We stood under the cascading waters of Living Root Bridges, witnessing centuries-old natural structures.",
+      "Safety coordination was crucial with such a large group. We had proper guides, safety equipment, and regular check-ins to ensure everyone enjoyed while staying secure.",
+      "The trip concluded with a bonfire under the stars, where everyone shared their favorite moments. This experience reinforced my belief in sustainable tourism and group management."
+    ]
+  },
+  {
+    title: "Hampi – Historic Adventure",
+    type: "Friends Trip",
+    people: "Group of 6",
+    experience: "Explored temples, ancient ruins, sunsets, and captured landscapes.",
+    itinerary: null,
+    images: [
+      "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1470224114614-78c50ce70d16?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    ],
+    details: [
+      "Hampi, a UNESCO World Heritage Site, took us back in time with its magnificent temple architecture. The Vijayanagara Empire's remnants were scattered across the landscape, each with a story.",
+      "We explored the Krishna Temple, Achyutaraya Temple, and countless ruins spread across the rocky terrain. Our small group of 6 made it easy to explore at our own pace.",
+      "The sunrise at Hemakuta Hills was magical, casting golden hues on the ancient stones. We spent hours capturing the beauty through photography and sketching.",
+      "The local market offered us authentic South Indian cuisine and handicrafts. We interacted with villagers who shared fascinating stories about the historical significance of each monument.",
+      "The boulder-strewn landscape and vibrant sunsets created unforgettable memories. This trip inspired a deep appreciation for India's historical heritage and architectural excellence."
+    ]
+  },
+  {
+    title: "Goa – Beach Escape",
+    type: "Friends Trip",
+    people: "Group of 7",
+    experience: "Relaxed sunsets, water sports, beach hopping and nightlife.",
+    itinerary: null,
+    images: [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1495507821991-611b36d7a689?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    ],
+    details: [
+      "Goa welcomed us with its golden beaches and vibrant culture. Our group of 7 friends was ready for adventure, relaxation, and unforgettable moments.",
+      "We hopped between Baga, Anjuna, and Palolem beaches, each offering unique experiences. Water sports like parasailing and jet skiing added thrill to our days.",
+      "The sunset sessions at the beach were therapeutic, with coconut drinks and conversations that lasted till the stars came out. We danced on the beach under moonlight.",
+      "The Portuguese influence was evident in the architecture, cuisine, and culture. We savored delicious seafood and explored colonial-era forts like Aguada and Chapora.",
+      "The vibrant nightlife, beach parties, and bonfire nights created memories that we still cherish. Goa truly lived up to its reputation as a paradise destination."
+    ]
+  },
+  {
+    title: "Mathura – Spiritual Journey",
+    type: "Friends Trip",
+    people: "Group of 5",
+    experience: "Visited Krishna temples, ghats and experienced rich culture.",
+    itinerary: null,
+    images: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    ],
+    details: [
+      "Mathura, the birthplace of Lord Krishna, resonated with spiritual energy. Our group of 5 connected deeply with the sacred atmosphere and rich Hindu traditions.",
+      "We visited the Krishna Janmasthan Temple and participated in the evening aarti at the ghats. The devotion and chanting created a transcendent experience.",
+      "Vrindavan, just nearby, offered us enchanting temples and the serene Banke Bihari Temple. We walked through the lanes where Lord Krishna is believed to have spent his childhood.",
+      "The Ras Leela performances and spiritual talks by monks deepened our understanding of Hindu philosophy and devotion. We spent hours in meditation by the Yamuna River.",
+      "This spiritual journey changed our perspective and brought us closer as a group. We returned with inner peace and renewed faith in humanity."
+    ]
+  },
+  {
+    title: "Gokarna – Peaceful Coastal Side",
+    type: "Friends Trip",
+    people: "Group of 4",
+    experience: "Calm and peaceful trip with trekking, hidden beaches and views.",
+    itinerary: null,
+    images: [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"
+    ],
+    details: [
+      "Gokarna, a hidden gem on the Karnataka coast, offered us tranquility away from tourist crowds. Our intimate group of 4 felt connected to nature in this peaceful haven.",
+      "We discovered hidden beaches accessible only by trekking through narrow forest paths. Each beach had its own charm and pristine beauty.",
+      "The cliff-top views during sunset were breathtaking, with waves crashing against the rocks below. We spent evenings watching the sun melt into the ocean.",
+      "The local shacks served us authentic coastal cuisine while we shared stories and philosophies. The simplicity of life here was refreshing and rejuvenating.",
+      "This trip taught us the value of slowing down and appreciating small moments. Gokarna will always hold a special place in our hearts."
+    ]
+  }
+];
+
+// Artwork Data
+const artworks = [
+  { title: "3D Paper Model – Peacock Theme", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop" },
+  { title: "Wall Mural – Galaxy Theme", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&h=500&fit=crop" },
+  { title: "Canvas Painting – Abstract Portrait", image: "https://images.unsplash.com/photo-1580136579312-94651dfd596d?w=500&h=500&fit=crop" },
+  { title: "Digital Art – Cosmic Landscape", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop" },
+  { title: "Mural Art – Ocean Waves", image: "https://images.unsplash.com/photo-1549887534-f2cb8b07bac0?w=500&h=500&fit=crop" },
+  { title: "Mixed Media – Nature Collage", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop" },
+  { title: "Watercolor – Sunset Horizon", image: "https://images.unsplash.com/photo-1549887534-f2cb8b07bac0?w=500&h=500&fit=crop" },
+  { title: "Acrylic Art – Colorful Strokes", image: "https://images.unsplash.com/photo-1565193566173-7cde29f6a081?w=500&h=500&fit=crop" },
+  { title: "Sketch – Portrait Study", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop" },
+  { title: "3D Sculpture – Geometric Form", image: "https://images.unsplash.com/photo-1578926078328-123456789012?w=500&h=500&fit=crop" },
+  { title: "Canvas – Botanical Art", image: "https://images.unsplash.com/photo-1549887534-f2cb8b07bac0?w=500&h=500&fit=crop" },
+  { title: "Street Art – Urban Expression", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop" }
+];
+
+// Art Carousel - FIXED LOOP LOGIC
+const ArtCarousel = ({ artworks }) => {
+  const [index, setIndex] = useState(0);
+  const itemsPerView = 6; // 2 rows of 3 items
+  const totalPages = Math.ceil(artworks.length / itemsPerView);
+
+  const prev = () => setIndex((i) => (i - 1 + totalPages) % totalPages);
+  const next = () => setIndex((i) => (i + 1) % totalPages);
+
+  const startIdx = index * itemsPerView;
+  const currentArtworks = artworks.slice(startIdx, startIdx + itemsPerView);
+
+  return (
+    <div style={{position: "relative", width: "100%"}}>
+      <button 
+        style={styles.artLeftBtn}
+        onClick={prev}
+        onMouseEnter={(e) => {
+          e.target.style.background = "rgba(42, 157, 143, 0.8)";
+          e.target.style.transform = "translateY(-50%) scale(1.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.background = "rgba(56, 178, 172, 0.25)";
+          e.target.style.transform = "translateY(-50%) scale(1)";
+        }}
+      >
+        <ChevronLeft size={24} />
+      </button>
+
+      <div style={styles.artCarouselContainer}>
+        {/* First Row - 3 cards */}
+        <div style={styles.artGrid}>
+          {currentArtworks.slice(0, 3).map((art, i) => (
+            <div 
+              key={i} 
+              style={styles.artCard}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-8px) scale(1.03)";
+                e.currentTarget.style.boxShadow = "0 16px 40px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(42, 157, 143, 0.4)";
+                e.currentTarget.style.borderColor = "rgba(56, 178, 172, 0.6)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0) scale(1)";
+                e.currentTarget.style.boxShadow = "0 6px 24px rgba(0, 0, 0, 0.35), 0 3px 10px rgba(42, 157, 143, 0.2)";
+                e.currentTarget.style.borderColor = "rgba(42, 157, 143, 0.3)";
+              }}
+            >
+              <img src={art.image} alt={art.title} style={{width: "100%", height: "180px", objectFit: "cover", borderRadius: "12px 12px 0 0"}} />
+              <p style={{padding: "8px 6px", fontSize: "0.65rem", color: "#e0fbfc", fontWeight: "600", textAlign: "center", lineHeight: "1.3", minHeight: "24px", display: "flex", alignItems: "center", justifyContent: "center"}}>{art.title}</p>
+            </div>
+          ))}
+        </div>
+        
+        {/* Second Row - 3 cards */}
+        <div style={styles.artGrid}>
+          {currentArtworks.slice(3, 6).map((art, i) => (
+            <div 
+              key={i} 
+              style={styles.artCard}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-8px) scale(1.03)";
+                e.currentTarget.style.boxShadow = "0 16px 40px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(42, 157, 143, 0.4)";
+                e.currentTarget.style.borderColor = "rgba(56, 178, 172, 0.6)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0) scale(1)";
+                e.currentTarget.style.boxShadow = "0 6px 24px rgba(0, 0, 0, 0.35), 0 3px 10px rgba(42, 157, 143, 0.2)";
+                e.currentTarget.style.borderColor = "rgba(42, 157, 143, 0.3)";
+              }}
+            >
+              <img src={art.image} alt={art.title} style={{width: "100%", height: "180px", objectFit: "cover", borderRadius: "12px 12px 0 0"}} />
+              <p style={{padding: "8px 6px", fontSize: "0.65rem", color: "#e0fbfc", fontWeight: "600", textAlign: "center", lineHeight: "1.3", minHeight: "24px", display: "flex", alignItems: "center", justifyContent: "center"}}>{art.title}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button 
+        style={styles.artRightBtn}
+        onClick={next}
+        onMouseEnter={(e) => {
+          e.target.style.background = "rgba(42, 157, 143, 0.8)";
+          e.target.style.transform = "translateY(-50%) scale(1.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.background = "rgba(56, 178, 172, 0.25)";
+          e.target.style.transform = "translateY(-50%) scale(1)";
+        }}
+      >
+        <ChevronRight size={24} />
+      </button>
+    </div>
+  );
+};
+
+export default function FeedSection() {
+  const [selectedTravel, setSelectedTravel] = useState(null);
+
+  return (
+    <section style={styles.section}>
+      <h2 style={styles.title}>✨ My Feed</h2>
+      <p style={styles.subtitle}>A glimpse into my journeys, adventures & artistic world.</p>
+
+      <h3 style={styles.heading}>
+        <MapPin size={22} style={{ marginRight: "10px" }} /> Travel Diaries
+      </h3>
+
+      <div style={styles.travelGrid}>
+        {travelSpots.map((spot, i) => (
+          <div 
+            key={i} 
+            style={styles.travelCard}
+            onClick={() => setSelectedTravel(spot)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-10px) scale(1.02)";
+              e.currentTarget.style.boxShadow = "0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(42, 157, 143, 0.5)";
+              e.currentTarget.style.borderColor = "rgba(56, 178, 172, 0.7)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0) scale(1)";
+              e.currentTarget.style.boxShadow = "0 10px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(42, 157, 143, 0.3)";
+              e.currentTarget.style.borderColor = "rgba(42, 157, 143, 0.4)";
+            }}
+          >
+            <ImageCarousel images={spot.images} />
+            <h3 style={styles.travelTitle}>{spot.title}</h3>
+            {spot.type === "Organized Trip" && (
+              <p style={styles.travelMeta}>{spot.type} • {spot.people}</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <h3 style={styles.heading}>
+        <Palette size={22} style={{ marginRight: "10px" }} /> My Artwork & Murals
+      </h3>
+      <ArtCarousel artworks={artworks} />
+
+      {selectedTravel && (
+        <TravelModal spot={selectedTravel} onClose={() => setSelectedTravel(null)} />
+      )}
+    </section>
+  );
+}
+
+const styles = {
+  section: {
+    padding: "80px 120px",
+    background: "linear-gradient(135deg, #0d1b2a 0%, #0d1b2a 50%, #1e3a3a 100%)",
+    color: "#e0fbfc",
+    fontFamily: "poppins, sans-serif",
+    minHeight: "100vh"
+  },
+  title: {
+    fontSize: "3rem",
+    fontWeight: "700",
+    marginBottom: "15px",
+    color: "#38b2ac",
+    textAlign: "center",
+    letterSpacing: "0.5px"
+  },
+  subtitle: {
+    fontSize: "1.2rem",
+    color: "#a9bcd0",
+    textAlign: "center",
+    marginBottom: "60px",
+    fontWeight: "400"
+  },
+  heading: {
+    fontSize: "2rem",
+    fontWeight: "700",
+    marginTop: "70px",
+    marginBottom: "35px",
+    display: "flex",
+    alignItems: "center",
+    color: "#38b2ac",
+    letterSpacing: "0.3px"
+  },
+  travelGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "35px",
+    marginBottom: "60px"
+  },
+  travelCard: {
+    background: "linear-gradient(135deg, rgba(42, 157, 143, 0.18) 0%, rgba(56, 178, 172, 0.12) 100%)",
+    borderRadius: "16px",
+    padding: "0",
+    paddingBottom: "20px",
+    backdropFilter: "blur(20px)",
+    border: "1px solid rgba(42, 157, 143, 0.4)",
+    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+    position: "relative",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(42, 157, 143, 0.3)",
+    cursor: "pointer"
+  },
+  travelTitle: {
+    fontSize: "1.1rem",
+    fontWeight: "700",
+    margin: "17px 20px 10px 20px",
+    color: "#e0fbfc",
+    letterSpacing: "0.3px"
+  },
+  travelMeta: {
+    fontSize: "0.85rem",
+    color: "#38b2ac",
+    margin: "0 20px 0 20px",
+    fontWeight: "500"
+  },
+  carousel: {
+    position: "relative",
+    width: "100%",
+    height: "170px",
+    borderRadius: "16px 16px 0 0",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    background: "#0d1b2a"
+  },
+  carouselImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+  carouselBtn: {
+    position: "absolute",
+    background: "rgba(56, 178, 172, 0.25)",
+    border: "1px solid rgba(56, 178, 172, 0.5)",
+    color: "#e0fbfc",
+    padding: "12px",
+    cursor: "pointer",
+    zIndex: 10,
+    borderRadius: "12px",
+    transition: "all 0.3s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "50px",
+    width: "50px",
+    backdropFilter: "blur(10px)"
+  },
+  artGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "19.2px",
+    width: "100%"
+  },
+  artGridWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+    flex: 1
+  },
+  artCard: {
+    borderRadius: "12px",
+    overflow: "hidden",
+    background: "linear-gradient(135deg, rgba(42, 157, 143, 0.15) 0%, rgba(56, 178, 172, 0.1) 100%)",
+    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+    border: "1px solid rgba(42, 157, 143, 0.3)",
+    cursor: "pointer",
+    backdropFilter: "blur(15px)",
+    boxShadow: "0 5px 20px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(42, 157, 143, 0.2)"
+  },
+  artCarouselContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+    width: "100%"
+  },
+  artLeftBtn: {
+    position: "absolute",
+    left: "0",
+    top: "45%",
+    transform: "translateY(-50%)",
+    background: "rgba(56, 178, 172, 0.25)",
+    border: "1px solid rgba(56, 178, 172, 0.5)",
+    color: "#e0fbfc",
+    padding: "12px",
+    cursor: "pointer",
+    zIndex: 10,
+    borderRadius: "12px",
+    transition: "all 0.3s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "50px",
+    width: "50px",
+    backdropFilter: "blur(10px)"
+  },
+  artRightBtn: {
+    position: "absolute",
+    right: "0",
+    top: "45%",
+    transform: "translateY(-50%)",
+    background: "rgba(56, 178, 172, 0.25)",
+    border: "1px solid rgba(56, 178, 172, 0.5)",
+    color: "#e0fbfc",
+    padding: "12px",
+    cursor: "pointer",
+    zIndex: 10,
+    borderRadius: "12px",
+    transition: "all 0.3s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "50px",
+    width: "50px",
+    backdropFilter: "blur(10px)"
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0,0,0,0.8)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    backdropFilter: "blur(8px)"
+  },
+  modalContent: {
+    background: "linear-gradient(135deg, #0d1b2a 0%, #1e3a3a 100%)",
+    borderRadius: "16px",
+    width: "90%",
+    maxWidth: "1300px",
+    height: "85vh",
+    display: "flex",
+    flexDirection: "column",
+    position: "relative",
+    border: "1px solid rgba(42, 157, 143, 0.4)",
+    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6)"
+  },
+  modalBody: {
+    display: "flex",
+    flex: 1,
+    overflow: "hidden"
+  },
+  modalLeft: {
+    flex: 1,
+    padding: "40px",
+    overflowY: "auto",
+    borderRight: "1px solid rgba(42, 157, 143, 0.3)"
+  },
+  modalContentScroll: {
+    marginTop: "25px"
+  },
+  modalRight: {
+    flex: 1,
+    padding: "40px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  modalCarousel: {
+    position: "relative",
+    width: "100%",
+    height: "400px",
+    borderRadius: "12px",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)"
+  },
+  modalCarouselImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+  carouselDots: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: "20px"
+  },
+  dot: {
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+    background: "rgba(255, 255, 255, 0.3)",
+    cursor: "pointer",
+    transition: "all 0.3s"
+  },
+  dotActive: {
+    background: "#38b2ac",
+    width: "28px",
+    borderRadius: "5px",
+    boxShadow: "0 2px 8px rgba(56, 178, 172, 0.5)"
+  },
+  modalTag: {
+    fontSize: "1rem",
+    color: "#38b2ac",
+    marginBottom: "25px",
+    fontWeight: "600"
+  },
+  itinerarySection: {
+    marginTop: "30px",
+    padding: "20px",
+    background: "rgba(42, 157, 143, 0.15)",
+    borderRadius: "10px",
+    border: "1px solid rgba(42, 157, 143, 0.3)",
+    backdropFilter: "blur(10px)"
+  },
+  itineraryLink: {
+    color: "#38b2ac",
+    textDecoration: "none",
+    fontWeight: "700",
+    fontSize: "1.05rem",
+    transition: "all 0.3s"
+  },
+  closeBtn: {
+    position: "absolute",
+    top: "20px",
+    right: "20px",
+    background: "none",
+    border: "none",
+    color: "#e0fbfc",
+    cursor: "pointer",
+    zIndex: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "8px",
+    borderRadius: "8px",
+    transition: "all 0.3s"
+  }
+};

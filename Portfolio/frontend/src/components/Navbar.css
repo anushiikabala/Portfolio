@@ -1,0 +1,280 @@
+:root {
+  --nav-bg: linear-gradient(90deg, #0d1b2a, #0d1b2a ,#1e3a3a);
+  --nav-text: #e0fbfc;
+  --nav-hover: #2a9d8f;
+  --nav-accent: #38b2ac;
+  --nav-border: rgba(255, 255, 255, 0.15);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* ---------------- Navbar ---------------- */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: var(--nav-bg);
+  padding: 0.9rem 3%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 9999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--nav-text);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.8rem;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Animated underline + glow --- */
+.nav-link {
+  position: relative;
+  text-decoration: none !important;
+  padding: 6px 4px;
+}
+
+.nav-link:visited {
+  color: var(--nav-text) !important;
+}
+
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background: var(--nav-accent);
+  box-shadow: 0 0 8px var(--nav-accent);
+  transition: width 0.35s ease;
+  border-radius: 4px;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+.nav-link:hover {
+  transform: translateY(-3px);
+  color: #fff;
+  text-shadow: 0 0 8px rgba(56, 178, 172, 0.6);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+
+/* --- Resume button enhanced effects --- */
+.nav-link[href="#resume"] {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link[href="#resume"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.nav-link[href="#resume"]:hover::before {
+  transform: translateX(100%);
+}
+
+.nav-link[href="#resume"]:hover {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 0 15px rgba(56, 178, 172, 0.4);
+  transition: all 0.35s ease;
+}
+
+/* ---------- Hamburger ---------- */
+.menu-toggle {
+  display: none;
+  font-size: 1.8rem;
+  color: var(--nav-text);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.menu-toggle:hover {
+  transform: rotate(90deg);
+}
+
+.resume-btn {
+  background: none;
+  border: none;
+  color: whitesmoke;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.3s ease;
+}
+
+.resume-btn:hover {
+  color: var(--accent, #2a9d8f);
+}
+/* 🌸 Fancy Resume Popup Styles */
+.resume-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.resume-popup {
+  background: linear-gradient(135deg, #ffffff 10%, #e8f6f3 100%);
+  border-radius: 18px;
+  padding: 28px 35px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  max-width: 350px;
+  width: 90%;
+  animation: slideUp 0.4s ease;
+}
+
+.resume-popup h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: #1b524b;
+  font-weight: 700;
+}
+
+.resume-popup p {
+  font-size: 1rem;
+  color: #35665e;
+  margin-bottom: 22px;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.confirm-btn {
+  background-color: #2a9d8f;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background-color: #24897d;
+  transform: scale(1.05);
+}
+
+.cancel-btn {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #d1d1d1;
+  transform: scale(1.05);
+}
+
+/* 🌈 Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .nav-links {
+    position: fixed;
+    top: 65px;
+    right: -100%;
+    width: 100%;
+    height: calc(100vh - 65px);
+    background: rgba(13, 27, 42, 0.98);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.8rem;
+    transition: right 0.4s ease-in-out;
+  }
+
+  .nav-links.active {
+    right: 0;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-link {
+    font-size: 1.1rem;
+  }
+
+  .nav-link[href="#resume"] {
+    padding: 8px 16px;
+  }
+}
+
+/* Prevent gradient overflow beyond screen */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
