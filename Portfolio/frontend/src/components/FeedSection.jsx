@@ -1,23 +1,6 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin, Palette, X } from "lucide-react";
 
-// Image Carousel Component
-const ImageCarousel = ({ images }) => {
-  const [index, setIndex] = useState(0);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((i) => (i + 1) % images.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [images.length]);
-
-  return (
-    <div style={styles.carousel}>
-      <img src={images[index]} alt="gallery" style={styles.carouselImg} />
-    </div>
-  );
-};
 
 // Travel Detail Modal
 const TravelModal = ({ spot, onClose }) => {
