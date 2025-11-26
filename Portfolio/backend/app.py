@@ -10,15 +10,17 @@ from groq import Groq
 import prompt
 from flask import send_from_directory
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 # ========================== CONFIG ==========================
 app = Flask(__name__)
 CORS(app)
 embedding_folder = "embeddings"
 os.makedirs(embedding_folder, exist_ok=True)
 embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-groq_api_key = os.getenv("GROQ_API_KEY")
 
+groq_api_key = os.getenv("GROQ_API_KEY")  # now env loads correctly 🚀
+client = Groq(api_key=groq_api_key)
 
 
 # ============ LOAD AND EMBED 2 RESUME PDFs ============
