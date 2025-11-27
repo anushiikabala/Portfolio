@@ -15,97 +15,95 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-embedding_folder = "embeddings"  # PKL files live here
-os.makedirs(embedding_folder, exist_ok=True)
+EMBED_DIR = "embeddings"   # 🔥 Folder containing PKL files
+MODEL = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-
-groq_api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=groq_api_key)
+groq_api = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=groq_api)
 
 
-# ========================== LOAD PRE-SAVED EMBEDDINGS ==========================
+# ========================== LOAD EMBEDDINGS ==========================
 def initialize_embeddings():
-    pkl_files = [f for f in os.listdir(embedding_folder) if f.endswith(".pkl")]
-    
+    pkl_files = [f for f in os.listdir(EMBED_DIR) if f.endswith(".pkl")]
+
     if not pkl_files:
-        raise RuntimeError("❌ No .pkl embeddings found inside /embeddings")
+        raise RuntimeError("❌ No .pkl embeddings found inside /embeddings — upload required.")
 
     all_vectors = []
     all_texts = []
     all_metadata = []
 
+    print("\n====== 🔥 Loading FAISS Embeddings from PKL ======\n")
     for file in pkl_files:
-        print(f"[LOADING] → {file}")
-        with open(os.path.join(embedding_folder, file), "rb") as f:
-            data = pickle.load(f)
+        print(f"[LOAD] {file}")
+        with open(os.path.join(EMBED_DIR, file), "rb") as f:
+            data = pickle.load(f)   # contains index + text + metadata
 
-        stored_index = data["index"]
-        vectors = stored_index.reconstruct_n(0, stored_index.ntotal)
+        index = data["index"]                      # Extract FAISS index
+        dim = index.d                              # read dimension
+        vectors = np.zeros((index.ntotal, dim))    # allocate array
+        index.reconstruct_n(0, index.ntotal, vectors)  # 🔥 PROPER reconstruct
 
         all_vectors.append(vectors)
         all_texts += data["texts"]
         all_metadata += data["metadata"]
 
+    # Merge everything for unified querying
     all_vectors = np.vstack(all_vectors)
-    index = faiss.IndexFlatL2(all_vectors.shape[1])
-    index.add(all_vectors)
+    final_index = faiss.IndexFlatL2(all_vectors.shape[1])
+    final_index.add(all_vectors)
 
-    print("🚀 Embeddings loaded successfully — NO recomputation")
-    return {"index": index, "texts": all_texts, "metadata": all_metadata, "model": embedding_model}
+    print("\n🚀 Embeddings loaded successfully — NO RECOMPUTATION\n")
+    return {"index": final_index, "texts": all_texts, "metadata": all_metadata, "model": MODEL}
 
 
 print("🔄 Loading embeddings…")
 docsearch = initialize_embeddings()
-print("✅ Embeddings Ready")
+print("✅ Ready for Chat!\n")
 
 
-# ========================== CHAT API ==========================
+# ========================== CHAT ENDPOINT ==========================
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.json
-    user_query = data.get("query", "").strip()
+    user_query = request.json.get("query", "").strip()
     if not user_query:
         return jsonify({"error": "Empty query"}), 400
 
-    # Retrieve relevant chunks
-    query_vec = docsearch["model"].encode([user_query], convert_to_numpy=True)
-    distances, indices = docsearch["index"].search(query_vec, 5)
-    top_docs = [docsearch["texts"][i] for i in indices[0]]
-    context = "\n\n".join(top_docs)
+    # Retrieve chunks
+    q_vec = docsearch["model"].encode([user_query], convert_to_numpy=True)
+    distances, indices = docsearch["index"].search(q_vec, 5)
 
-    # Generate answer
+    context = "\n\n".join(docsearch["texts"][i] for i in indices[0])
+
+    # Main answer
     chat_prompt = prompt.chat_prompt.replace("{context}", context).replace("{input}", user_query)
-    response = client.chat.completions.create(
+    res = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant about Anushika Balamurgan."},
+            {"role": "system", "content": "You assist with information about Anushika Balamurgan."},
             {"role": "user", "content": chat_prompt},
         ],
     )
-    answer = response.choices[0].message.content.strip()
+    answer = res.choices[0].message.content.strip()
 
     # Follow-up questions
     suggest_text = prompt.suggest_prompt.replace("{query}", user_query).replace("{answer}", answer)
-    suggest_resp = client.chat.completions.create(
+    sug = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "Suggest short follow-up questions."},
-            {"role": "user", "content": suggest_text},
-        ],
+        messages=[{"role": "user", "content": suggest_text}],
     )
-    suggestions = [s.strip() for s in suggest_resp.choices[0].message.content.split("\n")][:3]
+    suggestions = [s.strip() for s in sug.choices[0].message.content.split("\n")][:3]
 
     return jsonify({"response": answer, "suggestions": suggestions})
 
 
-# ========================== DOWNLOAD RESUME ROUTE ==========================
+# ========================== RESUME DOWNLOAD ==========================
 @app.route("/download-resume")
 def download_resume():
     return send_from_directory("data", "Anushika Resume.pdf", as_attachment=True)
 
 
-# ========================== RUN (RENDER DEPLOY) ==========================
+# ========================== RENDER SERVER ==========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
