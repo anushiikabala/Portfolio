@@ -20,7 +20,12 @@ os.makedirs(embedding_folder, exist_ok=True)
 embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 groq_api_key = os.getenv("GROQ_API_KEY")  # now env loads correctly 🚀
-client = Groq(api_key=groq_api_key)
+
+
+client = Groq(
+    api_key=groq_api_key
+)
+
 
 
 # ============ LOAD AND EMBED 2 RESUME PDFs ============
@@ -99,7 +104,6 @@ def chat():
             {"role": "system", "content": "You are a helpful assistant about Anushika Balamurgan."},
             {"role": "user", "content": chat_prompt},
         ],
-        temperature=0.2,
     )
     bot_reply = response.choices[0].message.content.strip()
 
