@@ -1,88 +1,66 @@
 import os
 import pickle
-from flask import Flask, request, jsonify
+import numpy as np
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from sentence_transformers import SentenceTransformer
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 import faiss
 from groq import Groq
 import prompt
-from flask import send_from_directory
-import os
 from dotenv import load_dotenv
+
 load_dotenv()
-# ========================== CONFIG ==========================
+
+# ========================== APP CONFIG ==========================
 app = Flask(__name__)
 CORS(app)
-embedding_folder = "embeddings"
+
+embedding_folder = "embeddings"  # PKL files live here
 os.makedirs(embedding_folder, exist_ok=True)
+
 embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-groq_api_key = os.getenv("GROQ_API_KEY")  # now env loads correctly 🚀
-
-
-client = Groq(
-    api_key=groq_api_key
-)
-
-
-
-# ============ LOAD AND EMBED 2 RESUME PDFs ============
-def initialize_embeddings():
-    docs_dir = "data"
-    pdf_files = [f for f in os.listdir(docs_dir) if f.endswith(".pdf")]
-    all_texts, all_metadata = [], []
-
-    for pdf in pdf_files:
-        file_path = os.path.join(docs_dir, pdf)
-        file_name = os.path.splitext(pdf)[0]
-        faiss_index_path = os.path.join(embedding_folder, f"{file_name}.pkl")
-
-        if os.path.exists(faiss_index_path):
-            print(f"[INFO] Using existing embeddings for {pdf}")
-            with open(faiss_index_path, "rb") as f:
-                data = pickle.load(f)
-            all_texts.extend(data["texts"])
-            all_metadata.extend(data["metadata"])
-        else:
-            print(f"[INFO] Creating embeddings for {pdf}...")
-            loader = PyPDFLoader(file_path)
-            documents = loader.load()
-            splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
-            chunks = splitter.split_documents(documents)
-
-            texts = [doc.page_content for doc in chunks]
-            metadata = [doc.metadata for doc in chunks]
-            vectors = embedding_model.encode(texts, convert_to_numpy=True)
-
-            dim = vectors.shape[1]
-            index = faiss.IndexFlatL2(dim)
-            index.add(vectors)
-
-            data = {"index": index, "texts": texts, "metadata": metadata, "model": embedding_model}
-            with open(faiss_index_path, "wb") as f:
-                pickle.dump(data, f)
-
-            all_texts.extend(texts)
-            all_metadata.extend(metadata)
-
-    all_vectors = embedding_model.encode(all_texts, convert_to_numpy=True)
-    dim = all_vectors.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(all_vectors)
-
-    return {"index": index, "texts": all_texts, "metadata": all_metadata, "model": embedding_model}
-
-
-print("[INFO] Loading embeddings...")
-docsearch = initialize_embeddings()
-print("[INFO] Embeddings ready ✅")
-
+groq_api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api_key)
 
 
-# ========================== MAIN CHAT ==========================
+# ========================== LOAD PRE-SAVED EMBEDDINGS ==========================
+def initialize_embeddings():
+    pkl_files = [f for f in os.listdir(embedding_folder) if f.endswith(".pkl")]
+    
+    if not pkl_files:
+        raise RuntimeError("❌ No .pkl embeddings found inside /embeddings")
+
+    all_vectors = []
+    all_texts = []
+    all_metadata = []
+
+    for file in pkl_files:
+        print(f"[LOADING] → {file}")
+        with open(os.path.join(embedding_folder, file), "rb") as f:
+            data = pickle.load(f)
+
+        stored_index = data["index"]
+        vectors = stored_index.reconstruct_n(0, stored_index.ntotal)
+
+        all_vectors.append(vectors)
+        all_texts += data["texts"]
+        all_metadata += data["metadata"]
+
+    all_vectors = np.vstack(all_vectors)
+    index = faiss.IndexFlatL2(all_vectors.shape[1])
+    index.add(all_vectors)
+
+    print("🚀 Embeddings loaded successfully — NO recomputation")
+    return {"index": index, "texts": all_texts, "metadata": all_metadata, "model": embedding_model}
+
+
+print("🔄 Loading embeddings…")
+docsearch = initialize_embeddings()
+print("✅ Embeddings Ready")
+
+
+# ========================== CHAT API ==========================
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
@@ -96,7 +74,7 @@ def chat():
     top_docs = [docsearch["texts"][i] for i in indices[0]]
     context = "\n\n".join(top_docs)
 
-    # ----- Generate main answer -----
+    # Generate answer
     chat_prompt = prompt.chat_prompt.replace("{context}", context).replace("{input}", user_query)
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -105,38 +83,29 @@ def chat():
             {"role": "user", "content": chat_prompt},
         ],
     )
-    bot_reply = response.choices[0].message.content.strip()
+    answer = response.choices[0].message.content.strip()
 
-    # ----- Generate follow-up questions -----
-    suggest_text = prompt.suggest_prompt.replace("{query}", user_query).replace("{answer}", bot_reply)
-    suggestion_resp = client.chat.completions.create(
+    # Follow-up questions
+    suggest_text = prompt.suggest_prompt.replace("{query}", user_query).replace("{answer}", answer)
+    suggest_resp = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": "You are a helpful AI that suggests concise follow-up questions."},
+            {"role": "system", "content": "Suggest short follow-up questions."},
             {"role": "user", "content": suggest_text},
         ],
-        temperature=0.4,
     )
-    suggestions_raw = suggestion_resp.choices[0].message.content.strip()
-    suggestions = [s.strip() for s in suggestions_raw.split("\n") if s.strip()][:3]
+    suggestions = [s.strip() for s in suggest_resp.choices[0].message.content.split("\n")][:3]
 
-    return jsonify({"response": bot_reply, "suggestions": suggestions})
-
+    return jsonify({"response": answer, "suggestions": suggestions})
 
 
-# ========================== RESUME DOWNLOAD ==========================
-@app.route('/download-resume', methods=['GET'])
+# ========================== DOWNLOAD RESUME ROUTE ==========================
+@app.route("/download-resume")
 def download_resume():
-    resume_path = os.path.join("data", "Anushika Resume.pdf")
-    return send_from_directory(
-        directory=os.path.dirname(resume_path),
-        path=os.path.basename(resume_path),
-        as_attachment=True
-    )
+    return send_from_directory("data", "Anushika Resume.pdf", as_attachment=True)
 
 
+# ========================== RUN (RENDER DEPLOY) ==========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))   # Railway gives automatic port
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-

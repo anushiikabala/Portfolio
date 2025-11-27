@@ -1,9 +1,0 @@
-[build]
-builder = "Nixpacks"
-dockerfile = false   # ⛔ ignore Dockerfile
-
-[deploy]
-start = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 200"
-
-[env]
-PYTHON_VERSION = "3.12"
