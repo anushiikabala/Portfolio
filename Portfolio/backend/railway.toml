@@ -1,8 +1,8 @@
-[phases.setup]
-nixPkgs = ["python312", "python312Packages.pip"]
+[build]
+builder = "Nixpacks"
 
-[phases.install]
-cmds = ["pip install -r requirements.txt"]
+[deploy]
+start = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 200"
 
-[start]
-cmd = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 200"
+[env]
+PYTHON_VERSION = "3.12"
