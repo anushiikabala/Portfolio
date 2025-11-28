@@ -13,7 +13,11 @@ load_dotenv()
 
 # ========================== CONFIG ==========================
 app = Flask(__name__)
-CORS(app)
+
+CORS(app, resources={r"/*": {"origins": [
+    "https://portfolio-anushika.vercel.app",   # your frontend domain
+    "http://localhost:3000",                   # for local dev
+]}})
 
 EMBED_DIR = "embeddings"     # already contains .pkl files
 MODEL = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
