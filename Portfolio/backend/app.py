@@ -66,24 +66,30 @@ VECTOR_DB = load_embeddings()
 # ============================ CHAT ROUTE ============================
 @app.route("/chat", methods=["POST"])
 def chat():
-    q = request.json.get("query", "").strip()
-    if not q:
-        return jsonify({"error": "Empty input"}), 400
+    try:
+        q = request.json.get("query","").strip()
+        if not q:
+            return jsonify({"error":"Empty query"}),400
 
-    q_vec = VECTOR_DB["model"].encode([q], convert_to_numpy=True)
-    _, ids = VECTOR_DB["index"].search(q_vec, 5)
-    context = "\n\n".join([VECTOR_DB["texts"][i] for i in ids[0]])
+        q_vec = VECTOR_DB["model"].encode([q], convert_to_numpy=True)
+        _, ids = VECTOR_DB["index"].search(q_vec, 5)
+        context = "\n\n".join([VECTOR_DB["texts"][i] for i in ids[0]])
 
-    prompt_text = prompt.chat_prompt.replace("{context}", context).replace("{input}", q)
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You speak about Anushika Balamurgan professionally."},
-            {"role": "user", "content": prompt_text},
-        ],
-    ).choices[0].message.content
+        prompt_text = prompt.chat_prompt.replace("{context}",context).replace("{input}",q)
 
-    return jsonify({"response": resp})
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role":"system","content":"Speak professionally about Anushika."},
+                {"role":"user","content":prompt_text}
+            ]
+        )
+
+        return jsonify({"response": response.choices[0].message.content })
+
+    except Exception as e:
+        print("🔥 ERROR →",e)
+        return jsonify({"error":str(e)}),500
 
 
 # ============================ PDF DOWNLOAD ============================
