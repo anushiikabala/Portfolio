@@ -36,28 +36,32 @@ client = Groq(api_key=groq_api_key)
 def load_embeddings():
     files = [f for f in os.listdir(EMBED_DIR) if f.endswith(".pkl")]
     if not files:
-        raise RuntimeError("❌ No embeddings found — upload .pkl files inside /embeddings")
+        raise RuntimeError("❌ No embeddings found")
 
-    all_vec, all_texts, all_meta = [], [], []
+    merged_vectors = []
+    merged_texts = []
 
     for file in files:
-        print(f"📌 Loading {file} ...")
+        print(f"📌 Loading {file}")
         with open(os.path.join(EMBED_DIR, file), "rb") as f:
             data = pickle.load(f)
 
-        idx = data["index"]
-        vectors = idx.reconstruct_n(0, idx.ntotal)
+        index = data["index"]
+        vecs = index.reconstruct_n(0, index.ntotal)
 
-        all_vec.append(vectors)
-        all_texts += data["texts"]
-        all_meta += data["metadata"]
+        merged_vectors.append(vecs)
+        merged_texts.extend(data["texts"])
 
-    all_vec = np.vstack(all_vec)
-    index = faiss.IndexFlatL2(all_vec.shape[1])
-    index.add(all_vec)
+    merged_vectors = np.vstack(merged_vectors)
 
-    print("🔥 FAISS Ready — No recomputation!")
-    return {"index": index, "texts": all_texts, "meta": all_meta, "model": MODEL}
+    faiss_index = faiss.IndexFlatL2(merged_vectors.shape[1])
+    faiss_index.add(merged_vectors)
+
+    return {
+        "index": faiss_index,
+        "texts": merged_texts,
+        "model": SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cpu")  # stays minimal
+    }
 
 
 VECTOR_DB = load_embeddings()
