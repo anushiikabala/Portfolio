@@ -39,7 +39,7 @@ export default function ChatPopup({
 
     try {
       // 🔹 Call Flask backend (update port if different)
-      const response = await fetch("http://127.0.0.1:5000/chat", {
+      const response = await fetch("https://portfolio-z3n0.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text }),
