@@ -6,7 +6,7 @@ const Navbar = () => {
   const [showResumePopup, setShowResumePopup] = useState(false);
 
   const handleDownload = () => {
-    window.location.href = "http://127.0.0.1:5000/download-resume";
+    window.location.href = "https://sea-lion-app-05zf.ondigitalocean.app/download-resume"
     setShowResumePopup(false);
   };
 
