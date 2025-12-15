@@ -4,118 +4,153 @@ from flask_cors import CORS
 from sentence_transformers import SentenceTransformer
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-import numpy as np
 import faiss
 from groq import Groq
 import prompt
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
+load_dotenv()   # ✅ ADD THIS
+print("Loaded key starts with:", os.getenv("GROQ_API_KEY")[:8])
 
-load_dotenv()
 
-# ================================= CONFIG =================================
+# ========================== CONFIG ==========================
 app = Flask(__name__)
+CORS(app)
 
-CORS(app, resources={r"/*": {"origins": [
-    "https://portfolio-anushika.vercel.app",
-    "http://localhost:3000"
-]}})
-
-PDF_DIR = "data"
-MODEL = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cpu")
-
+embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 groq_api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api_key)
 
 
-# ============================ INT8 OPTIMIZED INDEX ============================
-def create_int8_faiss(vectors):
-    d = vectors.shape[1]
+# ============ LOAD & EMBED PDFs (ONCE AT STARTUP) ============
+def initialize_embeddings():
+    docs_dir = "data"
+    pdf_files = [f for f in os.listdir(docs_dir) if f.endswith(".pdf")]
 
-    # IVF index (coarse clusters → faster & lighter)
-    nlist = 25  # cluster count
-    quantizer = faiss.IndexFlatL2(d)
-    index = faiss.IndexIVFFlat(quantizer, d, nlist, faiss.METRIC_L2)
+    all_texts = []
 
-    # train IVF clusters
-    index.train(vectors)
+    for pdf in pdf_files:
+        print(f"[INFO] Processing {pdf}")
+        file_path = os.path.join(docs_dir, pdf)
 
-    # product quantization → INT8
-    pq_m = 32  # lower = more compression
-    index = faiss.IndexIVFPQ(quantizer, d, nlist, pq_m, 8)  # 8-bit compression
+        loader = PyPDFLoader(file_path)
+        documents = loader.load()
 
-    index.train(vectors)
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1500,
+            chunk_overlap=200
+        )
+        chunks = splitter.split_documents(documents)
+
+        all_texts.extend([doc.page_content for doc in chunks])
+
+    print(f"[INFO] Total chunks: {len(all_texts)}")
+
+    vectors = embedding_model.encode(
+        all_texts,
+        convert_to_numpy=True,
+        batch_size=16
+    )
+
+    dim = vectors.shape[1]
+    index = faiss.IndexFlatL2(dim)
     index.add(vectors)
 
-    return index
-
-
-# ============================ BUILD VECTOR STORE ============================
-def load_pdfs_embeddings():
-    all_chunks = []
-
-    for pdf in os.listdir(PDF_DIR):
-        if pdf.endswith(".pdf"):
-            print(f"📄 Processing {pdf}")
-
-            docs = PyPDFLoader(os.path.join(PDF_DIR, pdf)).load()
-            splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-            chunks = splitter.split_documents(docs)
-
-            all_chunks.extend([c.page_content for c in chunks])
-
-    print(f"🔹 Total Chunks: {len(all_chunks)} — generating embeddings...")
-
-    vectors = MODEL.encode(all_chunks, convert_to_numpy=True, batch_size=12)
-
-    print(f"🔹 Creating INT8 FAISS index (Low RAM mode ON)...")
-    index = create_int8_faiss(vectors)
-
-    print("🔥 FAISS Index Ready (INT8 compressed & optimized)")
+    print("🔥 Embeddings initialized ONCE")
 
     return {
         "index": index,
-        "texts": all_chunks
+        "texts": all_texts,
+        "model": embedding_model
     }
 
 
-DB = load_pdfs_embeddings()
+print("[INFO] Loading embeddings...")
+docsearch = initialize_embeddings()
+print("[INFO] Embeddings ready ✅")
 
 
-# ============================== /chat =======================================
+# ========================== MAIN CHAT ==========================
 @app.route("/chat", methods=["POST"])
 def chat():
-    q = request.json.get("query", "").strip()
-    if not q:
-        return jsonify({"error": "Query is required"}), 400
+    data = request.json
+    user_query = data.get("query", "").strip()
 
-    q_vec = MODEL.encode([q], convert_to_numpy=True)
+    if not user_query:
+        return jsonify({"error": "Empty query"}), 400
 
-    # search top 5 docs
-    DB["index"].nprobe = 8  # search depth control
-    _, idx = DB["index"].search(q_vec, 5)
+    print("💬 Chat request received")
 
-    context = "\n\n".join(DB["texts"][i] for i in idx[0])
+    query_vec = docsearch["model"].encode(
+        [user_query],
+        convert_to_numpy=True
+    )
 
-    filled_prompt = prompt.chat_prompt.replace("{context}", context).replace("{input}", q)
+    _, indices = docsearch["index"].search(query_vec, 5)
+    context = "\n\n".join(
+        docsearch["texts"][i] for i in indices[0]
+    )
+
+    chat_prompt = (
+        prompt.chat_prompt
+        .replace("{context}", context)
+        .replace("{input}", user_query)
+    )
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant about Anushika Balamurgan."},
-            {"role": "user", "content": filled_prompt},
+            {
+                "role": "system",
+                "content": "You are a helpful assistant about Anushika Balamurgan."
+            },
+            {
+                "role": "user",
+                "content": chat_prompt
+            },
         ],
-    ).choices[0].message.content.strip()
+        temperature=0.2,
+    )
 
-    return jsonify({"response": response})
+    bot_reply = response.choices[0].message.content.strip()
+
+    # Follow-up suggestions
+    suggest_text = (
+        prompt.suggest_prompt
+        .replace("{query}", user_query)
+        .replace("{answer}", bot_reply)
+    )
+
+    suggestion_resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "Suggest concise follow-up questions."},
+            {"role": "user", "content": suggest_text},
+        ],
+        temperature=0.4,
+    )
+
+    suggestions = [
+        s.strip()
+        for s in suggestion_resp.choices[0].message.content.split("\n")
+        if s.strip()
+    ][:3]
+
+    return jsonify({
+        "response": bot_reply,
+        "suggestions": suggestions
+    })
 
 
-# ========================== DOWNLOAD RESUME ==========================
-@app.route("/download-resume")
+# ========================== RESUME DOWNLOAD ==========================
+@app.route("/download-resume", methods=["GET"])
 def download_resume():
-    return send_from_directory("data", "Anushika Resume.pdf", as_attachment=True)
+    return send_from_directory(
+        "data",
+        "Anushika Resume.pdf",
+        as_attachment=True
+    )
 
 
 # ========================== RUN ==========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(debug=True)

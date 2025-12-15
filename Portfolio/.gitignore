@@ -1,9 +1,14 @@
-backend/venv
+# Python
+backend/myenv/
+backend/__pycache__/
+backend/*.pkl
+backend/embeddings/
 backend/.env
-frontend/node_modules
-node_modules
 
-*.pkl
-*.dll
-*.lib
-*.pack
+# Node
+frontend/node_modules/
+
+# OS / editor
+.DS_Store
+.vscode/
+.env

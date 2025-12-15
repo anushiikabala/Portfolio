@@ -6,7 +6,7 @@ const Navbar = () => {
   const [showResumePopup, setShowResumePopup] = useState(false);
 
   const handleDownload = () => {
-    window.location.href = "https://portfolio-z3n0.onrender.com/download-resume";
+    window.location.href = "http://127.0.0.1:5000/download-resume";
     setShowResumePopup(false);
   };
 
