@@ -20,8 +20,8 @@ embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 groq_api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api_key)
 
-@app.route("/")
-def home():
+@app.route("/", methods=["GET"])
+def health():
     return jsonify({"status": "Backend running ✅"})
 
 
