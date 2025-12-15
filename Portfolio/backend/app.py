@@ -20,6 +20,10 @@ embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 groq_api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api_key)
 
+@app.route("/")
+def home():
+    return jsonify({"status": "Backend running ✅"})
+
 
 # ============ LOAD & EMBED PDFs (ONCE AT STARTUP) ============
 def initialize_embeddings():
@@ -142,13 +146,16 @@ def chat():
 
 
 # ========================== RESUME DOWNLOAD ==========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 @app.route("/download-resume", methods=["GET"])
 def download_resume():
     return send_from_directory(
-        "data",
+        os.path.join(BASE_DIR, "data"),
         "Anushika Resume.pdf",
         as_attachment=True
     )
+
 
 
 # ========================== RUN ==========================
