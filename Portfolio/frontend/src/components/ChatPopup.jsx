@@ -39,7 +39,7 @@ export default function ChatPopup({
 
     try {
       // 🔹 Call Flask backend (update port if different)
-      const response = await fetch("https://sea-lion-app-05zf.ondigitalocean.app/chat", {
+      const response = await fetch("https://sea-lion-app-o5zfi.ondigitalocean.app/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text }),
