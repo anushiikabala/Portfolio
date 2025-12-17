@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./HeroSection.css";
-import profilePic from "../assets/profile.jpg";
+import profilePic from "../assets/profile1.png";
 
 const HeroSection = ({ onZoomToggle, isChatOpen }) => {
   const [muted, setMuted] = useState(true);
